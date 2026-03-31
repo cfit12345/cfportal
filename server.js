@@ -732,7 +732,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     CONFIG = cfgRes;
 
     // Fetch subscription
-    const sub = await api(\`/api/subscription?customer_id=${state.customerId}\`);
+    const sub = await api(\`/api/subscription?customer_id=\${state.customerId}\`);
     state.subscriptionId = sub.subscription_id;
     state.currentPlan = sub.current_plan;
     state.email = sub.email || '';
@@ -757,10 +757,10 @@ function renderPortal() {
   const curIdx = PLAN_ORDER.indexOf(state.currentPlan);
 
   PLAN_ORDER.forEach((key, idx) => {
-    const card = document.getElementById(\`card-${key}\`);
-    const btn = document.getElementById(\`btn-${key}\`);
-    const tagCurrent = document.getElementById(\`tag-${key}\`);
-    const tagPop = document.getElementById(\`tag-${key}-pop\`);
+    const card = document.getElementById(\`card-\${key}\`);
+    const btn = document.getElementById(\`btn-\${key}\`);
+    const tagCurrent = document.getElementById(\`tag-\${key}\`);
+    const tagPop = document.getElementById(\`tag-\${key}-pop\`);
 
     card.classList.remove('is-current');
     if (tagCurrent) tagCurrent.style.display = 'none';
@@ -777,11 +777,11 @@ function renderPortal() {
         tagPop.style.display = '';
       }
       btn.className = 'btn btn-upgrade';
-      btn.textContent = \`Upgrade to ${CONFIG.plans[key].display_name}\`;
+      btn.textContent = \`Upgrade to \${CONFIG.plans[key].display_name}\`;
       btn.disabled = false;
     } else {
       btn.className = 'btn btn-downgrade';
-      btn.textContent = \`Downgrade to ${CONFIG.plans[key].display_name}\`;
+      btn.textContent = \`Downgrade to \${CONFIG.plans[key].display_name}\`;
       btn.disabled = false;
     }
   });
@@ -796,13 +796,13 @@ async function handlePlanClick(newPlan) {
   const isUpgrade = PLAN_ORDER.indexOf(newPlan) > PLAN_ORDER.indexOf(state.currentPlan);
   const planLabel = CONFIG.plans[newPlan].display_name;
   const msg = isUpgrade
-    ? \`Upgrade to ${planLabel} (${CONFIG.plans[newPlan].price_label})?\n\nYou'll be charged the prorated difference now.\`
-    : \`Downgrade to ${planLabel} (${CONFIG.plans[newPlan].price_label})?\n\nThe change takes effect at your next billing date.\`;
+    ? \`Upgrade to \${planLabel} (\${CONFIG.plans[newPlan].price_label})?\n\nYou'll be charged the prorated difference now.\`
+    : \`Downgrade to \${planLabel} (\${CONFIG.plans[newPlan].price_label})?\n\nThe change takes effect at your next billing date.\`;
 
   if (!confirm(msg)) return;
 
   try {
-    showLoader(\`Switching to ${planLabel}...\`);
+    showLoader(\`Switching to \${planLabel}...\`);
     await api('/api/switch-plan', {
       method: 'POST',
       body: {
@@ -815,7 +815,7 @@ async function handlePlanClick(newPlan) {
     state.currentPlan = newPlan;
     renderPortal();
     hideLoader();
-    showToast(\`You're now on ${planLabel}!\`, 'success');
+    showToast(\`You're now on \${planLabel}!\`, 'success');
   } catch (err) {
     hideLoader();
     showToast(err.message || 'Something went wrong.', 'error');
@@ -878,7 +878,7 @@ function selectReason(reason) {
         title: 'How about a lower plan?',
         subtitle: 'Save money without losing everything.',
         badge: 'Save Money',
-        headline: \`Switch to ${CONFIG.plans[downgradeTo].display_name} — ${CONFIG.plans[downgradeTo].price_label}\`,
+        headline: \`Switch to \${CONFIG.plans[downgradeTo].display_name} — \${CONFIG.plans[downgradeTo].price_label}\`,
         description: \`Keep your access at a lower price. You can always upgrade again later.\`,
         action: 'downgrade',
         action_plan: downgradeTo,
@@ -914,8 +914,8 @@ function buildDiscountOffer() {
     title: 'We\'ve got something special for you',
     subtitle: 'How about a discount to stick around?',
     badge: 'Exclusive Offer',
-    headline: \`${d.percent}% off for ${d.duration_months} month${d.duration_months > 1 ? 's' : ''}\`,
-    description: \`Stay on your current plan and save ${d.percent}% on your next ${d.duration_months} payment${d.duration_months > 1 ? 's' : ''}. No strings attached.\`,
+    headline: \`\${d.percent}% off for \${d.duration_months} month\${d.duration_months > 1 ? 's' : ''}\`,
+    description: \`Stay on your current plan and save \${d.percent}% on your next \${d.duration_months} payment\${d.duration_months > 1 ? 's' : ''}. No strings attached.\`,
     action: 'discount',
   };
 }
@@ -925,7 +925,7 @@ async function acceptOffer() {
   const offer = state.currentOffer;
   try {
     if (offer.action === 'downgrade') {
-      showLoader(\`Switching to ${CONFIG.plans[offer.action_plan].display_name}...\`);
+      showLoader(\`Switching to \${CONFIG.plans[offer.action_plan].display_name}...\`);
       await api('/api/switch-plan', {
         method: 'POST',
         body: {
@@ -938,7 +938,7 @@ async function acceptOffer() {
       state.currentPlan = offer.action_plan;
       hideLoader();
       document.getElementById('savedTitle').textContent = 'Plan updated!';
-      document.getElementById('savedMessage').textContent = \`You've been switched to ${CONFIG.plans[offer.action_plan].display_name}. Glad to keep you on board!\`;
+      document.getElementById('savedMessage').textContent = \`You've been switched to \${CONFIG.plans[offer.action_plan].display_name}. Glad to keep you on board!\`;
     } else if (offer.action === 'discount') {
       showLoader('Applying your discount...');
       await api('/api/apply-discount', {
@@ -950,7 +950,7 @@ async function acceptOffer() {
       });
       hideLoader();
       document.getElementById('savedTitle').textContent = 'Discount applied!';
-      document.getElementById('savedMessage').textContent = \`Your ${CONFIG.discount.percent}% discount has been applied for the next ${CONFIG.discount.duration_months} month(s). Enjoy!\`;
+      document.getElementById('savedMessage').textContent = \`Your \${CONFIG.discount.percent}% discount has been applied for the next \${CONFIG.discount.duration_months} month(s). Enjoy!\`;
     }
     showStep('step-saved');
   } catch (err) {
@@ -1047,7 +1047,7 @@ function hideLoader() {
 function showToast(msg, type) {
   const t = document.getElementById('toast');
   t.textContent = msg;
-  t.className = \`toast ${type} show\`;
+  t.className = \`toast \${type} show\`;
   setTimeout(() => t.classList.remove('show'), 4500);
 }
 </script>
